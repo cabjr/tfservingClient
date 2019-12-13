@@ -28,7 +28,7 @@ def parse_args():
     parser = ArgumentParser(description='Request a TensorFlow server for a prediction on the image')
     parser.add_argument('-s', '--server',
                         dest='server',
-                        default='172.17.0.2:9000',
+                        default='127.0.0.1:9000',
                         help='prediction service host:port')
     parser.add_argument("-i", "--image",
                         dest="image",
@@ -73,10 +73,10 @@ def main():
     if batch_mode:
         print('In batch mode')
         request = predict_pb2.PredictRequest()
-        request.model_spec.name = 'gan'
-        request.model_spec.signature_name = 'predict_images'
-
-        request.inputs['images'].CopyFrom(make_tensor_proto(imagedata, shape=[len(imagedata)]))
+        request.model_spec.name = 'documents'
+        request.model_spec.signature_name = 'serving_default'
+        request.inputs['key'].CopyFrom(tf.contrib.util.make_tensor_proto("0", shape=[1]))
+        request.inputs['image_bytes'].CopyFrom(make_tensor_proto(imagedata, shape=[len(imagedata)]))
 
         result = stub.Predict(request, 60.0)
         print(result)
@@ -84,10 +84,10 @@ def main():
         print('In one-by-one mode')
         for data in imagedata:
             request = predict_pb2.PredictRequest()
-            request.model_spec.name = 'gan'
-            request.model_spec.signature_name = 'predict_images'
-
-            request.inputs['images'].CopyFrom(make_tensor_proto(data, shape=[1]))
+            request.model_spec.name = 'documents'
+            request.model_spec.signature_name = 'serving_default'
+            request.inputs['key'].CopyFrom(tf.contrib.util.make_tensor_proto("0", shape=[1]))
+            request.inputs['image_bytes'].CopyFrom(make_tensor_proto(data, shape=[1]))
 
             result = stub.Predict(request, 60.0)  # 60 secs timeout
             print(result)
